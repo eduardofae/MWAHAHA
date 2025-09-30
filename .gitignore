@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+.venv/
+
+# Executável
+run.bat
+
+# Saídas
+outs/
