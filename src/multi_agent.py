@@ -1,28 +1,34 @@
-from tqdm import tqdm
+from tqdm import trange
 from comedian import Comedian
 from reviewer import Reviewer
+from utils import InputTypes
 
-words = ['Banana, Dinosaur', 'Mom, Dad', 'Dinner, Fate', 'Politics, Fear', 'Whale, Drums', 'French, Couch', 'Destiny, Desire', 'Bank, School', 'Pizza, Gasoline']
-jokes = []
+class MultiAgent():
+    def __init__(self, score_threshold: int = 8, num_tries: int = 30):
+        self.comedian = {
+            input_type: Comedian(input_type)
+            for input_type in InputTypes
+        }
+        self.reviewer = Reviewer()
 
-THRESHOLD = 8
-TRIES = 30
+        self.score_threshold = score_threshold
+        self.num_tries = num_tries
 
-comedian = Comedian()
-reviewer = Reviewer()
-for word_pair in tqdm(words, desc="Word Pairs"):
-    best_score = 0
-    best_joke = ''
-    for _ in tqdm(range(TRIES), desc="Tries"):
-        joke = comedian.gen_joke(word_pair)
-        score = reviewer.evaluate(joke)
-        if score > best_score:
-            best_score = score
-            best_joke = joke
-        if score >= THRESHOLD: break
-    jokes.append(best_joke)
-    comedian.reset()
-    reviewer.reset()
+    def gen_joke(self, input: str, input_type: InputTypes) -> str:
+        best_score = -1
+        best_joke = ''
+        comedian = self.comedian[input_type]
 
-for joke in jokes:
-    print(joke)
+        iter = trange(self.num_tries, desc="Tries", unit='Joke(s)', leave=False)
+        for _ in iter:
+            joke = comedian.gen_joke(input)
+            score = self.reviewer.evaluate(joke)
+            if score > best_score:
+                best_joke = joke
+                if score >= self.score_threshold: break
+                best_score = score
+    
+        iter.close()
+        comedian.reset()
+        self.reviewer.reset()
+        return best_joke

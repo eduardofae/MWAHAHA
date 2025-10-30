@@ -5,5 +5,5 @@ __pycache__/
 # Executável
 run.bat
 
-# Saídas
-outs/
+# Data
+data/

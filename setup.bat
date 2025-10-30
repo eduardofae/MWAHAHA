@@ -12,7 +12,7 @@ exit /b
 (
     echo @echo off
     echo start cmd /c ollama serve
-    echo uv run src/multi_agent.py
+    echo uv run src/run.py
 ) > run.bat 
 exit /b
 
