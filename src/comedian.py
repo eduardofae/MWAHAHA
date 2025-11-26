@@ -1,4 +1,4 @@
-from agent import Agent
+from agent import Agent, DEFAULT_MODEL, DEFAULT_BACKEND
 from utils import InputTypes
 
 class Comedian(Agent):
@@ -7,7 +7,7 @@ class Comedian(Agent):
         InputTypes.HL: "The user will input a headline; your joke must be related to the given headline (it could be a punchline, or a joke inspired by it)."
     }
 
-    def __init__(self, input_type: InputTypes):
+    def __init__(self, input_type: InputTypes, model: str = DEFAULT_MODEL, backend: str = DEFAULT_BACKEND):
         instruction = f"You are a masterful comedian; you can create the best jokes that have ever been imagined. \
                         You're tasked to make the best joke given a human input. \
                         After that your joke will be judged and evaluated. \
@@ -15,7 +15,7 @@ class Comedian(Agent):
                         {self.instruction_input_type[input_type]} \
                         When answering, only respond with your joke. \
                         The human input must play an integral role in the joke."
-        super().__init__(instruction)
+        super().__init__(instruction, model=model, backend=backend)
     
     def gen_joke(self, input: str) -> str:
         return self.chat(input)
