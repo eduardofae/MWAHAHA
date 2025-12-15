@@ -73,7 +73,6 @@ class Agent():
             'messages': self.cur_chat,
             'model': self.MODEL
         }
-        
         response = requests.post(api_url, json=payload, headers=headers)
         response.raise_for_status()
         

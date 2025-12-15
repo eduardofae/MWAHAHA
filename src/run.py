@@ -18,22 +18,22 @@ data = read_data()
 # agent = MultiAgent(THRESHOLD, TRIES)
 
 # Example: Use Fuelix API with Claude Sonnet
-# agent = MultiAgent(
-#     THRESHOLD, TRIES,
-#     comedian_model='claude-sonnet-4-5',
-#     comedian_backend='fuelix',
-#     reviewer_model='claude-sonnet-4-5',
-#     reviewer_backend='fuelix'
-# )
-
-# Example: Mix backends - Fuelix for comedian, Ollama for reviewer
 agent = MultiAgent(
     THRESHOLD, TRIES,
-    comedian_model='gpt-5',
+    comedian_model='claude-sonnet-4-5',
     comedian_backend='fuelix',
-    reviewer_model='gpt-5',
+    reviewer_model='claude-sonnet-4-5',
     reviewer_backend='fuelix'
 )
+
+# Example: Mix backends - Fuelix for comedian, Ollama for reviewer
+# agent = MultiAgent(
+#     THRESHOLD, TRIES,
+#     comedian_model='gpt-5',
+#     comedian_backend='fuelix',
+#     reviewer_model='gpt-5',
+#     reviewer_backend='fuelix'
+# )
 
 # Available Fuelix models: claude-sonnet-4-5, gpt-5, gemini-2.5-flash
 

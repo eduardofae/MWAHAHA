@@ -19,8 +19,11 @@ class MultiAgent():
             input_type: Comedian(input_type, model=comedian_model, backend=comedian_backend)
             for input_type in InputTypes
         }
-        # Create reviewer with the specified model/backend
-        self.reviewer = Reviewer(model=reviewer_model, backend=reviewer_backend)
+        # Create reviewers for each input type with the specified model/backend
+        self.reviewer = {
+            input_type: Reviewer(input_type, model=reviewer_model, backend=reviewer_backend)
+            for input_type in InputTypes
+        }
 
         self.score_threshold = score_threshold
         self.num_tries = num_tries
@@ -29,11 +32,12 @@ class MultiAgent():
         best_score = -1
         best_joke = ''
         comedian = self.comedian[input_type]
+        reviewer = self.reviewer[input_type]
 
         iter = trange(self.num_tries, desc="Tries", unit='Joke(s)', leave=False)
         for _ in iter:
             joke = comedian.gen_joke(input)
-            score = self.reviewer.evaluate(joke)
+            score = reviewer.evaluate(input, joke)
             if score > best_score:
                 best_joke = joke
                 if score >= self.score_threshold: break
@@ -41,5 +45,5 @@ class MultiAgent():
     
         iter.close()
         comedian.reset()
-        self.reviewer.reset()
+        reviewer.reset()
         return best_joke
