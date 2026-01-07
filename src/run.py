@@ -1,10 +1,11 @@
 import argparse
+import time
 from tqdm import tqdm
 from multi_agent import MultiAgent
 from utils import read_data, append_joke, get_last_processed_id
 
 THRESHOLD = 8
-TRIES = 30
+TRIES = 3
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Generate jokes from corpus')
@@ -20,9 +21,9 @@ data = read_data()
 # Example: Use Fuelix API with Claude Sonnet
 agent = MultiAgent(
     THRESHOLD, TRIES,
-    comedian_model='claude-sonnet-4-5',
+    comedian_model='gemini-3-flash',
     comedian_backend='fuelix',
-    reviewer_model='claude-sonnet-4-5',
+    reviewer_model='gemini-3-flash',
     reviewer_backend='fuelix'
 )
 
@@ -57,6 +58,8 @@ try:
     for i in range(start_index, len(data)):
         joke_id, input, input_type = data[i]
         joke = agent.gen_joke(input, input_type)
+        # sleep for 5 seconds
+        # time.sleep(5)
         # Only write header if this is truly the first joke (not continuing)
         is_first = (i == 0 and start_index == 0)
         append_joke(joke_id, joke, is_first=is_first)

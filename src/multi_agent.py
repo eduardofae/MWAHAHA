@@ -8,7 +8,7 @@ class MultiAgent():
     def __init__(
         self, 
         score_threshold: int = 8, 
-        num_tries: int = 30,
+        num_tries: int = 3,
         comedian_model: str = DEFAULT_MODEL,
         comedian_backend: str = DEFAULT_BACKEND,
         reviewer_model: str = DEFAULT_MODEL,
