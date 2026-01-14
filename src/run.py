@@ -2,7 +2,7 @@ import argparse
 import time
 from tqdm import tqdm
 from multi_agent import MultiAgent
-from utils import read_data, append_joke, get_last_processed_id
+from utils import read_inputs, append_joke, get_last_processed_id
 
 THRESHOLD = 8
 TRIES = 3
@@ -13,7 +13,7 @@ parser.add_argument('--continue', dest='continue_from_last', action='store_true'
                     help='Continue from the last processed joke in the output file')
 args = parser.parse_args()
 
-data = read_data()
+data = read_inputs()
 
 # Default: Use Ollama with gemma3:4b
 # agent = MultiAgent(THRESHOLD, TRIES)
