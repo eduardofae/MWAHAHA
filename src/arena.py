@@ -18,7 +18,7 @@ class Match():
     winner: Optional[str] = None
 
 class Arena():
-    out_path = 'data/outs/arena.json'
+    out_path = 'data/outs/arena.jsonl'
 
     def __init__(
         self, 
@@ -51,23 +51,23 @@ class Arena():
             chosen_jokes[0], chosen_jokes[1]
         )
 
-    def match(self, match: Match) -> str:
+    def run_match(self, match: Match) -> str:
         judge = self.judges[match.input_type]
         winner = judge.select(match.input, match.jokes)
         return match.models[winner]
 
     def run(self, num_matches: int = 50) -> None:
-        winners = []
         for _ in trange(num_matches):
             match = self._gen_match()
-            match.winner = self.match(match)
-            winners.append(asdict(match))
-        self.save(winners)
+            match.winner = self.run_match(match)
+            self.save(match)
     
-    def save(self, results: list[Match]):
+    def save(self, result: Match):
         file_path = Path(self.out_path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        open(file_path, 'w', encoding='utf-8').write(json.dumps(results))
+        result_dict = asdict(result)
+        open(file_path, 'a', encoding='utf-8')\
+            .write(json.dumps(result_dict) + '\n')
 
 arena = Arena()
-arena.run(5)
+arena.run()
