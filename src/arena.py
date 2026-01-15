@@ -8,6 +8,8 @@ from tqdm import trange
 import json
 from pathlib import Path
 
+DEFAULT_OUTPUT_PATH = 'data/outs/arena.jsonl'
+
 @dataclass
 class Match():
     id: str
@@ -18,14 +20,13 @@ class Match():
     winner: Optional[str] = None
 
 class Arena():
-    out_path = 'data/outs/arena.jsonl'
-
     def __init__(
         self, 
         judge_model: str = DEFAULT_MODEL,
         judge_backend: str = DEFAULT_BACKEND,
         inputs_path: str = DEFAULT_INPUT_PATH,
-        jokes_path: str = DEFAULT_JOKES_PATH
+        jokes_path: str = DEFAULT_JOKES_PATH,
+        out_path: str = DEFAULT_OUTPUT_PATH
     ):
         # Create judge for each input type with the specified model/backend
         self.judges = {
@@ -34,6 +35,7 @@ class Arena():
         }
         self.inputs = read_inputs(inputs_path)
         self.jokes = read_jokes(jokes_path)
+        self.out_path = out_path
 
     def _gen_match(self) -> Match:
         input = self.inputs[
