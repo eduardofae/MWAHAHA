@@ -1,8 +1,8 @@
-from tqdm import trange
 from comedian import Comedian
 from reviewer import Reviewer
 from utils import InputTypes
 from agent import DEFAULT_MODEL, DEFAULT_BACKEND
+from tqdm import trange
 
 class MultiAgent():
     def __init__(

@@ -1,8 +1,7 @@
-import argparse
-import time
-from tqdm import tqdm
 from multi_agent import MultiAgent
 from utils import read_inputs, append_joke, get_last_processed_id
+import argparse
+from tqdm import tqdm
 
 THRESHOLD = 8
 TRIES = 3
@@ -21,10 +20,10 @@ data = read_inputs()
 # Example: Use Fuelix API with Claude Sonnet
 agent = MultiAgent(
     THRESHOLD, TRIES,
-    comedian_model='gemini-3-flash',
-    comedian_backend='fuelix',
-    reviewer_model='gemini-3-flash',
-    reviewer_backend='fuelix'
+    # comedian_model='gemini-3-flash',
+    # comedian_backend='fuelix',
+    # reviewer_model='gemini-3-flash',
+    # reviewer_backend='fuelix'
 )
 
 # Example: Mix backends - Fuelix for comedian, Ollama for reviewer
@@ -44,8 +43,8 @@ if args.continue_from_last:
     last_id = get_last_processed_id()
     if last_id:
         # Find the index after the last processed ID
-        for i, (joke_id, _, _) in enumerate(data):
-            if joke_id == last_id:
+        for i, input in enumerate(data):
+            if input.id == last_id:
                 start_index = i + 1
                 break
         print(f"Continuing from joke {start_index + 1} (last processed: {last_id})")
@@ -56,13 +55,13 @@ if args.continue_from_last:
 pbar = tqdm(total=len(data) - start_index, desc='Jokes', unit='Joke(s)', initial=0)
 try:
     for i in range(start_index, len(data)):
-        joke_id, input, input_type = data[i]
-        joke = agent.gen_joke(input, input_type)
+        input = data[i]
+        joke = agent.gen_joke(input.input, input.input_type)
         # sleep for 5 seconds
         # time.sleep(5)
         # Only write header if this is truly the first joke (not continuing)
         is_first = (i == 0 and start_index == 0)
-        append_joke(joke_id, joke, is_first=is_first)
+        append_joke(input.id, joke, is_first=is_first)
         pbar.update(1)
 except KeyboardInterrupt:
     print("\n\nInterrupted by user. Progress has been saved.")

@@ -1,4 +1,5 @@
 from enum import StrEnum
+from dataclasses import dataclass
 
 DEFAULT_OUTPUT_PATH = 'data/outs/'
 DEFAULT_INPUT_PATH = 'data/corpus/task-a-en.tsv'
@@ -8,15 +9,37 @@ class InputTypes(StrEnum):
     WP = 'word_pair'
     HL = 'headline'
 
+@dataclass
+class Input():
+    id: str
+    input: str
+    input_type: InputTypes
+
+@dataclass
+class Joke():
+    model: str
+    joke: str
+
 import pandas as pd
-def read_inputs(path: str = DEFAULT_INPUT_PATH) -> list[tuple[str, str, InputTypes]]:
+def read_inputs(path: str = DEFAULT_INPUT_PATH) -> list[Input]:
     return [
-        (input['id'], f'{input['word1']}, {input['word2']}', InputTypes.WP)
+        Input(input['id'], f'{input['word1']}, {input['word2']}', InputTypes.WP)
         if input['headline'] == '-'
-        else (input['id'], input['headline'], InputTypes.HL)
+        else Input(input['id'], input['headline'], InputTypes.HL)
         for _, input in 
         pd.read_csv(path, sep = '\t').iterrows()
     ]
+
+def read_jokes(path: str = DEFAULT_JOKES_PATH) -> dict[str, Joke]:
+    return {
+        input['id']: [
+            Joke(column, value)
+            for column, value in input.items()
+            if column != 'id'
+        ]
+        for _, input in 
+        pd.read_csv(path, sep = ',').iterrows()
+    }
 
 from pathlib import Path
 def write_data(data: str, path: str = DEFAULT_JOKES_PATH) -> None:
@@ -53,14 +76,3 @@ def append_joke(joke_id: str, joke: str, path: str = DEFAULT_JOKES_PATH, is_firs
             f.write(f'{joke_id},"{escaped_joke}"\n')
         else:
             f.write(f'{joke_id},{escaped_joke}\n')
-
-def read_jokes(path: str = DEFAULT_JOKES_PATH) -> list[tuple[str, list[tuple[str, str]]]]:
-    return {
-        input['id']: [
-            (column, value)
-            for column, value in input.items()
-            if column != 'id'
-        ]
-        for _, input in 
-        pd.read_csv(path, sep = ',').iterrows()
-    }

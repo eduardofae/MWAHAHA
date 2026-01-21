@@ -1,19 +1,21 @@
 from judge import Judge
-from utils import InputTypes, DEFAULT_JOKES_PATH, DEFAULT_INPUT_PATH, read_jokes, read_inputs, write_data
 from agent import DEFAULT_MODEL, DEFAULT_BACKEND
+from utils import InputTypes, DEFAULT_JOKES_PATH, DEFAULT_INPUT_PATH, read_jokes, read_inputs
 import numpy as np
+
+# Typing
 from dataclasses import dataclass, asdict
 from typing import Optional
+
+# Progress Bar
 from tqdm import trange
+
+# Store/Load Data
 import json
 from pathlib import Path
 
 DEFAULT_MODELS_PATH = 'data/outs/models.json'
 DEFAULT_OUTPUT_PATH = 'data/outs/arena.jsonl'
-# INPUT LABELS
-ID = 0
-INPUT = 1
-INPUT_TYPE = 2
 
 @dataclass
 class Model():
@@ -46,52 +48,47 @@ class Arena():
             input_type: Judge(input_type, model=judge_model, backend=judge_backend)
             for input_type in InputTypes
         }
-        self.inputs = read_inputs(inputs_path)
-        self.jokes = read_jokes(jokes_path)
         self.out_path = out_path
         self.models_path = models_path
+        self.inputs = read_inputs(inputs_path)
+        self.jokes = read_jokes(jokes_path)
         self.models = self._get_models()
 
     def _get_models(self) -> list[Model]:
         file_path = Path(self.models_path)
         if not file_path.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            first_joke_key = list(self.jokes.keys())[0]
-            return [
-                Model(model, 0.0, 0, 0)
-                for model, joke in self.jokes[first_joke_key]
-            ]
+            first_joke_key = next(iter(self.jokes))
+            return { 
+                joke.model: Model(joke.model, 0.0, 0, 0)
+                for joke in self.jokes[first_joke_key]
+            }
         else:
-            return [
-                Model(**model)
+            return {
+                model['name']: Model(**model)
                 for model in json.loads(
                     open(file_path, 'r', encoding='utf-8')\
                         .read()
                 )
-            ]
+            }
 
     def _gen_match(self) -> Match:
-        input = self.inputs[
-            np.random.choice(len(self.inputs))
-        ]
-        possible_jokes = self.jokes[input[ID]]
-        chosen_jokes = [
-            possible_jokes[i]
-            for i in 
-            np.random.choice(len(possible_jokes), 2, replace=False)
-        ]
-        chosen_jokes = list(zip(*chosen_jokes))
+        input = np.random.choice(self.inputs)
+        possible_jokes = self.jokes[input.id]
+        chosen_jokes = np.random.choice(possible_jokes, 2, replace=False)
+        models = [joke.model for joke in chosen_jokes]
+        jokes  = [joke.joke  for joke in chosen_jokes]
         return Match(
-            input[ID], input[INPUT], input[INPUT_TYPE],
-            chosen_jokes[0], chosen_jokes[1]
+            input.id, input.input, input.input_type,
+            models, jokes
         )
     
     def _update_models(self, models: tuple[str, str], winner: str) -> None:
-        for model in self.models:
-            if model.name in models:
-                model.n_matches += 1
-                if model.name == winner:
-                    model.wins += 1
+        for model_name in models:
+            model = self.models[model_name]
+            model.n_matches += 1
+            if model_name == winner:
+                model.wins += 1
 
     def _run_match(self, match: Match) -> str:
         judge = self.judges[match.input_type]
@@ -117,7 +114,7 @@ class Arena():
         # Save Leaderboard State
         file_path = Path(self.models_path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        models_dict = [asdict(model) for model in self.models]
+        models_dict = [asdict(model) for model in self.models.values()]
         open(file_path, 'w', encoding='utf-8')\
             .write(json.dumps(models_dict))
 
