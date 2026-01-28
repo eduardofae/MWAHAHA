@@ -235,7 +235,7 @@ class Arena():
                 },
                 'total_matches': sum(self.jokes[input.id][idx].num_matches.values())
             }
-            for idx in ranking[:5]
+            for idx in ranking
         ]
         out_path = self._get_full_out_path(input.id, OutputTypes.SCORE)
         out_path.parent.mkdir(parents=True, exist_ok=True)
