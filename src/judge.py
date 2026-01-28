@@ -36,7 +36,7 @@ Do not include any explanation, context, or additional text - just the number.""
     def select(self, original_input: str, jokes: list[str]) -> int:
         prompt = f"ORIGINAL INPUT: {original_input}\n"
         for i, joke in enumerate(jokes):
-            prompt += f'JOKE{i}: {joke}\n'
+            prompt += f'JOKE{i+1}: {joke}\n'
         for attempt in range(self.MAX_RETRIES):
             try:
                 response = self.chat(prompt)
@@ -44,7 +44,7 @@ Do not include any explanation, context, or additional text - just the number.""
                 # First try direct conversion
                 try:
                     best_joke = int(response.strip())
-                    if best_joke and (best_joke == 1 or best_joke == 2):
+                    if best_joke == 1 or best_joke == 2:
                         return best_joke-1 # Transform to 0-1 to be used as index
                     
                 except ValueError:
@@ -52,7 +52,7 @@ Do not include any explanation, context, or additional text - just the number.""
                     numbers = re.findall(r'\b(\d+)\b', response)
                     if numbers: 
                         best_joke = int(numbers[0])
-                        if best_joke and (best_joke == 1 or best_joke == 2):
+                        if best_joke == 1 or best_joke == 2:
                             return best_joke-1 # Transform to 0-1 to be used as index
                 
                 # If we get here, the response was invalid
