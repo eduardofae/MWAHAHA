@@ -19,6 +19,7 @@ class Input():
 class Joke():
     model: str
     joke: str
+    num_matches: dict[int, int]
 
 import pandas as pd
 def read_inputs(path: str = DEFAULT_INPUT_PATH) -> list[Input]:
@@ -30,10 +31,13 @@ def read_inputs(path: str = DEFAULT_INPUT_PATH) -> list[Input]:
         pd.read_csv(path, sep = '\t').iterrows()
     ]
 
-def read_jokes(path: str = DEFAULT_JOKES_PATH) -> dict[str, Joke]:
+def read_jokes(path: str = DEFAULT_JOKES_PATH) -> dict[str, list[Joke]]:
     return {
         input['id']: [
-            Joke(column, value)
+            Joke(column, value, {
+                id: 0
+                for id in range(len(input)-1)
+            })
             for column, value in input.items()
             if column != 'id'
         ]
