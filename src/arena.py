@@ -19,7 +19,6 @@ from pathlib import Path
 import pandas as pd
 from scipy.optimize import minimize
 
-DEFAULT_MODELS_PATH = f'{DEFAULT_OUTPUT_PATH}/models.json'
 ALL_INPUTS = -1
 EVERY_TIME = 1
 NO_WARMUP = 0
@@ -53,7 +52,6 @@ class Arena():
         judge_backend: str = DEFAULT_BACKEND,
         inputs_path: str = DEFAULT_INPUT_PATH,
         jokes_path: str = DEFAULT_JOKES_PATH,
-        models_path: str = DEFAULT_MODELS_PATH,
         out_path: str = DEFAULT_OUTPUT_PATH
     ):
         # Create judge for each input type with the specified model/backend
@@ -62,7 +60,7 @@ class Arena():
             for input_type in InputTypes
         }
         self.out_path = Path(out_path)
-        self.models_path = Path(models_path)
+        self.models_path = self.out_path / 'models.json'
         self.inputs = read_inputs(inputs_path)
         self.jokes = read_jokes(jokes_path)
         self.models = self._get_models()

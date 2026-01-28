@@ -9,7 +9,6 @@ load_dotenv()
 
 DEFAULT_MODEL = 'gemma3:4b'
 DEFAULT_BACKEND = 'ollama'
-# DEFAULT_MODEL = 'deepseek-r1:8b'
 
 # Fuelix API models for easy testing:
 # - claude-sonnet-4-5
