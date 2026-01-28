@@ -1,11 +1,12 @@
 from judge import Judge
 from agent import DEFAULT_MODEL, DEFAULT_BACKEND
-from utils import InputTypes, Input, Joke, DEFAULT_JOKES_PATH, DEFAULT_INPUT_PATH, read_jokes, read_inputs
+from utils import InputTypes, Input, Joke, DEFAULT_JOKES_PATH, DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_PATH, read_jokes, read_inputs
 import numpy as np
 
 # Typing
 from dataclasses import dataclass, asdict
 from typing import Optional
+from enum import StrEnum
 
 # Progress Bar
 from tqdm import trange
@@ -18,11 +19,14 @@ from pathlib import Path
 import pandas as pd
 from scipy.optimize import minimize
 
-DEFAULT_MODELS_PATH = 'data/outs/models.json'
-DEFAULT_OUTPUT_PATH = 'data/outs/arena.jsonl'
+DEFAULT_MODELS_PATH = f'{DEFAULT_OUTPUT_PATH}/models.json'
 ALL_INPUTS = -1
 EVERY_TIME = 1
 NO_WARMUP = 0
+
+class OutputTypes(StrEnum):
+    ARENA = 'arena'
+    SCORE = 'scores'
 
 @dataclass
 class Model():
@@ -79,13 +83,13 @@ class Arena():
             for joke in self.jokes[first_joke_key]
         }
     
-    def _get_full_out_path(self, input_id: str) -> Path:
+    def _get_full_out_path(self, input_id: str, out_type: OutputTypes) -> Path:
         return Path(
-            f'{self.out_path.parent}/{self.out_path.stem}/{input_id}{self.out_path.suffix}'
+            f'{self.out_path}/{out_type}/{input_id}.{'jsonl' if out_type == OutputTypes.ARENA else 'json'}'
         )
 
     def _get_match_results(self, input_id: str) -> list[Match]:
-        out_path = self._get_full_out_path(input_id)
+        out_path = self._get_full_out_path(input_id, OutputTypes.ARENA)
         if not out_path.exists(): return []
         return [
             json.loads(match)
@@ -204,11 +208,13 @@ class Arena():
         if random: np.random.shuffle(inputs)
         if num_inputs == ALL_INPUTS or num_inputs > len(self.inputs): 
             num_inputs = len(self.inputs)
-        for input_idx in trange(num_inputs):
+        outer_pbar = trange(num_inputs, desc='Input', unit='input')
+        for input_idx in outer_pbar:
             input = inputs[input_idx]
+            outer_pbar.set_postfix(id=input.id)
             self._update_match_count(input)
             _, self.covariance_matrix = self._compute_bt_scores(input)
-            for cur_match in trange(num_matches, leave=False):
+            for cur_match in trange(num_matches, leave=False, desc='Match', unit='match'):
                 match = self._gen_match(input, cur_match, warmup_matches)
                 match.winner = self._run_match(match)
                 self._save(match)
@@ -224,19 +230,23 @@ class Arena():
                 'joke': self.jokes[input.id][idx].joke,
                 'model': self.jokes[input.id][idx].model,
                 'score': round(scores[idx], 2),
-                'match_distribution': self.jokes[input.id][idx].num_matches,
+                'match_distribution': { 
+                    self.jokes[input.id][id].model: matches
+                    for id, matches in self.jokes[input.id][idx].num_matches.items()
+                    if id != idx
+                },
                 'total_matches': sum(self.jokes[input.id][idx].num_matches.values())
             }
             for idx in ranking[:5]
         ]
-        out_path = Path(f'{self.out_path.parent}/scores/{input.id}.json')
+        out_path = self._get_full_out_path(input.id, OutputTypes.SCORE)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         open(out_path, 'w', encoding='utf-8')\
             .write(json.dumps(final_scores))
 
     def _save(self, result: Match):
         # Save Match
-        out_path = self._get_full_out_path(result.id)
+        out_path = self._get_full_out_path(result.id, OutputTypes.ARENA)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         result_dict = asdict(result)
         open(out_path, 'a', encoding='utf-8')\

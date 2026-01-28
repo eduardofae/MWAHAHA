@@ -1,6 +1,7 @@
 from agent import Agent, DEFAULT_MODEL, DEFAULT_BACKEND
 from utils import InputTypes
 import re
+from tqdm import tqdm
 
 class Reviewer(Agent):
     MAX_RETRIES = 5  # Maximum attempts to get a valid score
@@ -58,14 +59,14 @@ Do not include any explanation, context, or additional text - just the number.""
                             return score
                 
                 # If we get here, the response was invalid
-                print(f"Warning: Invalid score response (attempt {attempt + 1}/{self.MAX_RETRIES}): {response}")
+                tqdm.write(f"Warning: Invalid score response (attempt {attempt + 1}/{self.MAX_RETRIES}): {response}")
                 
             except KeyboardInterrupt:
                 # Always allow user to interrupt
                 raise
             except Exception as e:
-                print(f"Warning: Error getting score (attempt {attempt + 1}/{self.MAX_RETRIES}): {e}")
+                tqdm.write(f"Warning: Error getting score (attempt {attempt + 1}/{self.MAX_RETRIES}): {e}")
         
         # If all retries failed, return a default score
-        print(f"Error: Could not get valid score after {self.MAX_RETRIES} attempts. Using default score of 5.")
+        tqdm.write(f"Error: Could not get valid score after {self.MAX_RETRIES} attempts. Using default score of 5.")
         return 5

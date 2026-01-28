@@ -2,6 +2,7 @@ from agent import Agent, DEFAULT_MODEL, DEFAULT_BACKEND
 from utils import InputTypes
 import re
 import numpy as np
+from tqdm import tqdm
 
 class Judge(Agent):
     MAX_RETRIES = 5  # Maximum attempts to get a valid score
@@ -43,23 +44,26 @@ Do not include any explanation, context, or additional text - just the number.""
                 # First try direct conversion
                 try:
                     best_joke = int(response.strip())
+                    if best_joke and (best_joke == 1 or best_joke == 2):
+                        return best_joke-1 # Transform to 0-1 to be used as index
+                    
                 except ValueError:
                     # Try to find a number in the response using regex
                     numbers = re.findall(r'\b(\d+)\b', response)
                     if numbers: 
                         best_joke = int(numbers[0])
-                if best_joke == 1 or best_joke == 2:
-                    return best_joke-1 # Transform to 0-1 to be used as index
+                        if best_joke and (best_joke == 1 or best_joke == 2):
+                            return best_joke-1 # Transform to 0-1 to be used as index
                 
                 # If we get here, the response was invalid
-                print(f"Warning: Invalid selection response (attempt {attempt + 1}/{self.MAX_RETRIES}): {response}")
+                tqdm.write(f"Warning: Invalid selection response (attempt {attempt + 1}/{self.MAX_RETRIES}): {response}")
                 
             except KeyboardInterrupt:
                 # Always allow user to interrupt
                 raise
             except Exception as e:
-                print(f"Warning: Error selecting better joke (attempt {attempt + 1}/{self.MAX_RETRIES}): {e}")
+                tqdm.write(f"Warning: Error selecting better joke (attempt {attempt + 1}/{self.MAX_RETRIES}): {e}")
         
         # If all retries failed, return a default score
-        print(f"Error: Could not select the better joke after {self.MAX_RETRIES} attempts. Choosing at random.")
-        return np.random.randint(1, 3)
+        tqdm.write(f"Error: Could not select the better joke after {self.MAX_RETRIES} attempts. Choosing at random.")
+        return np.random.randint(0, 2)
