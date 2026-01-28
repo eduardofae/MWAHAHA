@@ -204,9 +204,9 @@ class Arena():
     def run(self, num_matches: int = 50, num_inputs: int = ALL_INPUTS, start_input_id: int = 0, random: bool = True, batch_size: int = EVERY_TIME, warmup_matches: int = NO_WARMUP) -> None:
         inputs = self.inputs
         if random: np.random.shuffle(inputs)
-        if num_inputs == ALL_INPUTS or num_inputs > len(self.inputs): 
-            num_inputs = len(self.inputs)
-        outer_pbar = trange(start_input_id, num_inputs, desc='Input', unit='input')
+        if num_inputs == ALL_INPUTS or (start_input_id + num_inputs) > len(self.inputs): 
+            num_inputs = len(self.inputs) - start_input_id
+        outer_pbar = trange(start_input_id, start_input_id + num_inputs, desc='Input', unit='input')
         for input_idx in outer_pbar:
             input = inputs[input_idx]
             outer_pbar.set_postfix(id=input.id)
