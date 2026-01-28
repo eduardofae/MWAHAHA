@@ -221,6 +221,7 @@ class Arena():
                     _, self.covariance_matrix = self._compute_bt_scores(input)
             scores, _ = self._compute_bt_scores(input)
             self._save_scores(scores, input)
+        self._gen_best_jokes_file()
     
     def _save_scores(self, scores: list[float], input: Input):
         ranking = np.argsort(scores)[::-1]
@@ -256,6 +257,22 @@ class Arena():
         models_dict = [asdict(model) for model in self.models.values()]
         open(self.models_path, 'w', encoding='utf-8')\
             .write(json.dumps(models_dict))
+        
+    def _gen_best_jokes_file(self) -> None:
+        in_path = self.out_path / OutputTypes.SCORE
+        out_path = self.out_path / 'best_jokes.csv'
+        data = [
+            {
+                'id': score_path.stem,
+                'joke': json.loads(
+                    open(score_path, 'r', encoding='utf-8').read()
+                )[0]['joke']
+            }
+            for score_path in in_path.iterdir()
+            if score_path.is_file()
+        ]
+        df = pd.DataFrame(data)
+        df.to_csv(out_path, index=False)
 
 arena = Arena()
 arena.run()
